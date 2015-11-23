@@ -17,14 +17,15 @@ namespace RequestObjectsTest
 {
     public partial class _Default : System.Web.UI.Page
     {
+
+		private string rFilter { get; set; }
+
         public List<NameValuePair> GetServerVars()
         {
-			NameValueCollection qs = Request.QueryString;
-			string returnFilter = MQueryString.GetReturnFilter(qs);
             List<NameValuePair> serverVars = new List<NameValuePair>();
-			if (!string.IsNullOrEmpty (returnFilter)) 
+			if (!string.IsNullOrEmpty (rFilter)) 
 			{
-				foreach (string s in Context.Items.Keys.OfType<string>().Where(c => c.Contains(returnFilter)))
+				foreach (string s in Context.Items.Keys.OfType<string>().Where(c => c.Contains(rFilter)))
 				{
 					serverVars.Add(new NameValuePair(s, Context.Items[s].ToString()));
 				}
@@ -43,6 +44,12 @@ namespace RequestObjectsTest
 
         protected void Page_Load(object sender, EventArgs e)
         {
+			rFilter = null;
+			if(!string.IsNullOrEmpty(Request.QueryString["filter"]))
+			{
+				rFilter = Request.QueryString["filter"];
+			}
+
             foreach (string s in Request.ServerVariables.AllKeys)
             {
                 Context.Items[s] = Request.ServerVariables[s];
@@ -50,19 +57,6 @@ namespace RequestObjectsTest
             RequestObjectsGV.DataBind();
         }
     }
-
-	public static class MQueryString
-	{
-		public static string GetReturnFilter(NameValueCollection qs)
-		{
-			string returnFilter = null;
-			if(!string.IsNullOrEmpty(qs["filter"]))
-			{
-				returnFilter = qs["filter"];
-			}
-			return returnFilter;
-		}
-	}
 
     public class NameValuePair : IComparable
     {
