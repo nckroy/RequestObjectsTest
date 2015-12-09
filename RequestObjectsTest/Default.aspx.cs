@@ -17,43 +17,39 @@ namespace RequestObjectsTest
 {
     public partial class _Default : System.Web.UI.Page
     {
-
-		private string rFilter { get; set; }
-
         public List<NameValuePair> GetServerVars()
         {
             List<NameValuePair> serverVars = new List<NameValuePair>();
-			if (!string.IsNullOrEmpty (rFilter)) 
+
+			foreach (string s in Context.Items.Keys.OfType<string>())
 			{
-				foreach (string s in Context.Items.Keys.OfType<string>().Where(c => c.Contains(rFilter)))
-				{
-					serverVars.Add(new NameValuePair(s, Context.Items[s].ToString()));
-				}
-				serverVars.Sort();
-			} 
-			else 
-			{
-				foreach (string s in Context.Items.Keys.OfType<string>())
-				{
-					serverVars.Add(new NameValuePair(s, Context.Items[s].ToString()));
-				}
-				serverVars.Sort();
+				serverVars.Add(new NameValuePair(s, Context.Items[s].ToString()));
 			}
+			serverVars.Sort();
+
             return serverVars;
         }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-			rFilter = null;
-			if(!string.IsNullOrEmpty(Request.QueryString["filter"]))
+			if (!string.IsNullOrEmpty (Request.QueryString ["filter"])) 
 			{
-				rFilter = Request.QueryString["filter"];
+				string rFilter = Request.QueryString ["filter"];
+				foreach (string s in Request.ServerVariables.AllKeys) 
+				{
+					if(s.StartsWith(rFilter))
+					{
+						Context.Items [s] = Request.ServerVariables [s];
+					}
+				}
+			} 
+			else 
+			{
+				foreach (string s in Request.ServerVariables.AllKeys) 
+				{
+					Context.Items [s] = Request.ServerVariables [s];
+				}
 			}
-
-            foreach (string s in Request.ServerVariables.AllKeys)
-            {
-                Context.Items[s] = Request.ServerVariables[s];
-            }
             RequestObjectsGV.DataBind();
         }
     }
